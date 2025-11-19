@@ -1,3 +1,4 @@
+import base64
 import json
 import os
 import random
@@ -57,13 +58,15 @@ def post_tweet(payload: dict, token: dict) -> dict:
     return response.json()
 
 
-def save_token(token: dict):
-    """Guarda el token en Redis"""
-    r.set("token", json.dumps(token))
+def save_token(token):
+    raw = json.dumps(token)
+    b64 = base64.b64encode(raw.encode()).decode()
+    r.set("token", b64)
 
 
-def load_token() -> Optional[Dict[str, Any]]:
-    t = r.get("token")  # bytes o None
+def load_token():
+    t = r.get("token")
     if not t:
         return None
-    return json.loads(t.decode("utf-8"))
+    decoded = base64.b64decode(t).decode("utf-8")
+    return json.loads(decoded)
